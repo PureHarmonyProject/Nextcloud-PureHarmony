@@ -1,0 +1,32 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "Nextcloud 客户端"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "description"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "Nextcloud"
+    },
+    {
+      "name": "permission_image_video_reason",
+      "value": "备份照片/视频"
+    },
+    {
+      "name": "tab_files",
+      "value": "文件"
+    },
+    {
+      "name": "tab_photos",
+      "value": "相片"
+    },
+    {
+      "name": "tab_discover",
+      "value": "发现"
+    }
+  ]
+}

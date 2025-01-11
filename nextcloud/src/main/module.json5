@@ -1,0 +1,16 @@
+{
+  "module": {
+    "name": "nextcloud",
+    "type": "har",
+    "deviceTypes": [
+      "phone",
+      "2in1",
+      "tablet"
+    ],
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.INTERNET"
+      }
+    ]
+  }
+}

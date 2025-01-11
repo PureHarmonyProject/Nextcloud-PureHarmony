@@ -1,0 +1,32 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "Nextcloud Client"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "Nextcloud Client"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "Nextcloud"
+    },
+    {
+      "name": "permission_image_video_reason",
+      "value": "Backup your image and videos"
+    },
+    {
+      "name": "tab_files",
+      "value": "Files"
+    },
+    {
+      "name": "tab_photos",
+      "value": "Photos"
+    },
+    {
+      "name": "tab_discover",
+      "value": "Discover"
+    }
+  ]
+}

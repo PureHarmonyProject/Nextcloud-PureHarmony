@@ -1,0 +1,11 @@
+{
+  "name": "nextcloud",
+  "version": "1.0.0",
+  "description": "Nextcloud API Wrapper",
+  "main": "./index.ets",
+  "author": "Moody Liu",
+  "license": "",
+  "dependencies": {
+    "@ohos/axios": "^2.2.4",
+  },
+}

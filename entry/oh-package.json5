@@ -1,0 +1,11 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "Nextcloud Client for HarmonyOS",
+  "main": "",
+  "author": "Moody Liu",
+  "license": "",
+  "dependencies": {
+    "nextcloud": "file:../nextcloud",
+  },
+}
