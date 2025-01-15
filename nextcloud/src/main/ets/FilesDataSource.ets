@@ -1,4 +1,5 @@
 import { DirectoryEntry } from './webdav/DirEntryParserStateMachine';
+import { ListFiles } from './webdav/Files';
 
 class BasicDataSource<T> implements IDataSource {
     protected entries: T[] = [];
@@ -14,7 +15,6 @@ class BasicDataSource<T> implements IDataSource {
 
     registerDataChangeListener(listener: DataChangeListener): void {
         if (this.listeners.indexOf(listener) < 0) {
-            console.info('add listener');
             this.listeners.push(listener);
         }
     }
@@ -22,7 +22,6 @@ class BasicDataSource<T> implements IDataSource {
     unregisterDataChangeListener(listener: DataChangeListener): void {
         const pos = this.listeners.indexOf(listener);
         if (pos >= 0) {
-            console.info('remove listener');
             this.listeners.splice(pos, 1);
         }
     }
@@ -65,43 +64,22 @@ class BasicDataSource<T> implements IDataSource {
 }
 
 export class FilesDataSource extends BasicDataSource<DirectoryEntry> {
-    constructor() {
+    constructor(path: string) {
+        ListFiles(path).then(entries => {
+            entries = entries.sort((a: DirectoryEntry, b: DirectoryEntry) => {
+                // Directories first, then sort by name
+                if (a.isDirectory && !b.isDirectory) {
+                    return -1;
+                } else if (!a.isDirectory && b.isDirectory) {
+                    return 1;
+                } else {
+                    return a.name.localeCompare(b.name);
+                }
+            })
+
+            this.entries = entries;
+            this.notifyDataReload();
+        });
         super();
-    }
-
-    //
-    // setFiles(entries: DirectoryEntry[]): void {
-    //     let oldEntriesCount = this.entries.length;
-    //     this.entries = entries;
-    //
-    //     for (let i = oldEntriesCount; i < entries.length; i++) {
-    //         this.notifyDataAdd(i);
-    //     }
-    //     for (let i = entries.length; i < oldEntriesCount; i++) {
-    //         this.notifyDataDelete(i);
-    //     }
-    //     for (let i = 0; i < oldEntriesCount; i++) {
-    //         this.notifyDataChange(i);
-    //     }
-    // }
-
-    public pushData(data: DirectoryEntry): void {
-        this.entries.push(data);
-        this.notifyDataAdd(this.entries.length - 1);
-    }
-
-    public deleteData(index: number): void {
-        this.entries.splice(index, 1);
-        this.notifyDataDelete(index);
-    }
-
-    public eraseData(): void {
-        while (this.entries.length > 0) {
-            this.deleteData(0);
-        }
-    }
-
-    public reloadData(): void {
-        this.notifyDataReload();
     }
 }
