@@ -29,8 +29,6 @@ export class Path {
         } else {
             this.parts = [];
         }
-
-        Logger.Debug(TAG, "Path created: " + this.path);
     }
 
     get leaf() {

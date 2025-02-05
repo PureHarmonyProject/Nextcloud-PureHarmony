@@ -3,6 +3,7 @@ import { deviceInfo } from '@kit.BasicServicesKit'
 import { preferences } from "@kit.ArkData";
 import { common } from '@kit.AbilityKit';
 import { Logger } from "./Logger";
+import util from "@ohos.util";
 
 
 const TAG = "Nextcloud-Common";
@@ -81,5 +82,28 @@ export namespace NCommon {
     export function Initialise(context: common.UIAbilityContext) {
         Logger.Info(TAG, "Common initialised with User-Agent: " + USER_AGENT());
         Preference = new NPreference(context);
+    }
+
+
+    export function MakePreviewUrl(fileId: string, x: number = 64, y: number = 64): string {
+        return `https://${NCommon.Preference.username}:${NCommon.Preference.password}@${NCommon.Preference.hostname}`
+            + `/core/preview?fileId=${fileId}&x=${x}&y=${y}&mimeFallback=true`;
+    }
+
+    export function MakeDownloadUrl(filePath: string): string {
+        let encodedPath = encodeURI(filePath);
+        return `https://${NCommon.Preference.username}:${NCommon.Preference.password}@${NCommon.Preference.hostname}`
+            + `/remote.php/dav/files/${NCommon.Preference.username}/${encodedPath}`;
+    }
+
+    let Base64Util = new util.Base64Helper();
+    let Utf8Encoder = util.TextEncoder.create('utf-8');
+
+    function Base64Encode(msg: string): string {
+        return Base64Util.encodeToStringSync(Utf8Encoder.encodeInto(msg));
+    }
+
+    export function MakeAuthorization() {
+        return 'basic ' + Base64Encode(NCommon.Preference.username + ":" + NCommon.Preference.password);
     }
 }

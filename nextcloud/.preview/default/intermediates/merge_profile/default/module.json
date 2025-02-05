@@ -1,0 +1,31 @@
+{
+	"app": {
+		"bundleName": "me.moody.nextcloud",
+		"debug": true,
+		"versionCode": 1000000,
+		"versionName": "1.0.0",
+		"minAPIVersion": 50001013,
+		"targetAPIVersion": 50001013,
+		"apiReleaseType": "Release",
+		"compileSdkVersion": "5.0.1.115",
+		"compileSdkType": "HarmonyOS",
+		"appEnvironments": [],
+		"bundleType": "app"
+	},
+	"module": {
+		"name": "nextcloud",
+		"type": "har",
+		"deviceTypes": [
+			"phone",
+			"2in1",
+			"tablet"
+		],
+		"requestPermissions": [
+			{
+				"name": "ohos.permission.INTERNET"
+			}
+		],
+		"packageName": "nextcloud",
+		"installationFree": false
+	}
+}

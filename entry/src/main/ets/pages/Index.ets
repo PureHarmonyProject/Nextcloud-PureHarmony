@@ -4,6 +4,7 @@ import { Logger } from '../utils/Logger';
 import { App, promptAction } from '@kit.ArkUI';
 import { Path } from '../utils/Path';
 import { FolderPageBuilder } from './FolderPage';
+import { UploadPage } from './UploadPage';
 
 const TAG = "Page-Index";
 
@@ -46,6 +47,7 @@ struct Index {
         if (!this.loginProcess.hasAppPassword()) {
             Logger.Debug(TAG, "No app password, start login process");
             try {
+                await webview.WebCookieManager.clearAllCookies();
                 let loginUrl = await this.loginProcess.initLogin();
                 if (!loginUrl) {
                     Logger.Error(TAG, "Login failed");
@@ -189,6 +191,13 @@ struct Index {
                 }
             }
             .tabBar("Login Page")
+
+            TabContent() {
+                UploadPage()
+                    .width('100%')
+                    .height('100%')
+            }
+            .tabBar("Image Upload")
         }
         .width('100%')
         .height('100%')

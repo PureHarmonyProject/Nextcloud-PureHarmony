@@ -1,23 +1,11 @@
-import { DirectoryEntry, FilesDataSource } from "nextcloud";
+import { DirectoryEntry, FilesDataSource, NCommon } from "nextcloud";
 import { Logger } from "../utils/Logger";
 import { Path } from "../utils/Path";
-import { MakePreviewUrl } from "../utils/Utils";
 import { PreviewPageProps, PREVIEW_PAGE_NAME } from "./PreviewPage";
 import { promptAction } from "@kit.ArkUI";
+import { FormatBytes } from "../utils/Utils";
 
 const TAG = "Page-FolderPage";
-
-function formatBytes(bytes: string) {
-    let bytesNum = parseInt(bytes);
-    let units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    let i = 0;
-    while (bytesNum >= 1024) {
-        bytesNum /= 1024;
-        i++;
-    }
-
-    return bytesNum.toFixed(2) + ' ' + units[i];
-}
 
 export let FOLDER_PAGE_NAME: string = "FolderPage";
 
@@ -27,15 +15,14 @@ struct FolderPage {
     @Consume('FolderList.PathStack') pageInfos: NavPathStack;
     @Prop currentPath: Path;
 
-    onItemClicked(entry: DirectoryEntry) {
+    async onItemClicked(entry: DirectoryEntry) {
         let pathInfo: NavPathInfo;
         Logger.Info(TAG, JSON.stringify(entry));
         if (entry.isDirectory) {
             pathInfo = new NavPathInfo(FOLDER_PAGE_NAME, this.currentPath.getChild(entry.name));
         } else if (entry.has_preview) {
             let props: PreviewPageProps = { entry: entry, fullPath: this.currentPath.getChild(entry.name) };
-            pathInfo =
-                new NavPathInfo(PREVIEW_PAGE_NAME, props);
+            pathInfo = new NavPathInfo(PREVIEW_PAGE_NAME, props);
         } else {
             promptAction.showToast({
                 message: `No preview available for ${entry.name}`,
@@ -56,7 +43,7 @@ struct FolderPage {
                         Button({ type: ButtonType.Normal }) {
                             Row() {
                                 if (d.has_preview) {
-                                    Image(MakePreviewUrl(d.fileId))
+                                    Image(NCommon.MakePreviewUrl(d.fileId))
                                         .width(32)
                                         .height(32)
                                         .margin({ right: 10 })
@@ -75,7 +62,7 @@ struct FolderPage {
                                         .margin({ bottom: 2 })
 
                                     Text(d.isDirectory ? 'directory' :
-                                        (d.mime + ' (' + formatBytes(d.size) + ')'))
+                                        (d.mime + ' (' + FormatBytes(d.size) + ')'))
                                         .fontSize(10)
                                         .maxLines(1)
                                         .fontStyle(FontStyle.Italic)
@@ -86,8 +73,8 @@ struct FolderPage {
                         }
                         .backgroundColor('#00000000')
                         .borderRadius(0)
-                        .onClick(() => {
-                            this.onItemClicked(d);
+                        .onClick(async () => {
+                            await this.onItemClicked(d);
                         })
                         .width('100%')
                         .height(64)

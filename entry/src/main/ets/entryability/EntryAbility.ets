@@ -2,6 +2,7 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { window } from '@kit.ArkUI';
 import { NCommon } from 'nextcloud';
 import { Logger } from '../utils/Logger';
+import { GlobalStorage } from '../utils/GlobalStorage';
 
 const TAG = 'EntryAbility';
 
@@ -18,6 +19,9 @@ export default class EntryAbility extends UIAbility {
 
     async onWindowStageCreate(windowStage: window.WindowStage) {
         Logger.Info(TAG, 'Main window is created, set main page for this ability');
+
+        let context = this.context;
+        GlobalStorage.SandboxBasePath = context.filesDir;
 
         try {
             await windowStage.loadContent('pages/Index');

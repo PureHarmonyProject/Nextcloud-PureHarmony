@@ -1,7 +1,6 @@
-import { DirectoryEntry } from "nextcloud";
+import { DirectoryEntry, NCommon } from "nextcloud";
 import { Logger } from "../utils/Logger";
 import { Path } from "../utils/Path";
-import { MakeDownloadUrl, MakePreviewUrl } from "../utils/Utils";
 
 const TAG: string = "Page-PreviewPage";
 
@@ -18,7 +17,7 @@ struct PreviewPage {
     @State private imageOffsetY: number = 0;
     private previousOffsetX: number = 0;
     private previousOffsetY: number = 0;
-    @State private previewLink: string = MakePreviewUrl(this.entry.fileId, 100, 100);
+    @State private previewLink: string = NCommon.MakePreviewUrl(this.entry.fileId, 100, 100);
     @State @Watch('onPreviewLevelChanged') private previewLevel: number = 0;
     @State private failedToLoad: boolean = false;
     @State private failedReason: string = "";
@@ -46,9 +45,9 @@ struct PreviewPage {
                         if (this.previewLevel == 2) {
                             Logger.Info(TAG, "Preview image loaded, start loading full image");
                             if (this.entry.mime.startsWith("image/")) {
-                                this.previewLink = MakeDownloadUrl(this.fullPath.path(false));
+                                this.previewLink = NCommon.MakeDownloadUrl(this.fullPath.path(false));
                             } else {
-                                this.previewLink = MakePreviewUrl(this.entry.fileId, 1000, 1000);
+                                this.previewLink = NCommon.MakePreviewUrl(this.entry.fileId, 1000, 1000);
                             }
                         }
                     })
@@ -65,7 +64,7 @@ struct PreviewPage {
                     .gesture(
                         GestureGroup(GestureMode.Parallel,
                             PanGesture()
-                                .onActionStart((event: GestureEvent) => {
+                                .onActionStart((_event: GestureEvent) => {
                                     this.previousOffsetX = this.imageOffsetX;
                                     this.previousOffsetY = this.imageOffsetY;
                                 })
@@ -73,18 +72,18 @@ struct PreviewPage {
                                     this.imageOffsetX = this.previousOffsetX + event.offsetX * this.imageScale;
                                     this.imageOffsetY = this.previousOffsetY + event.offsetY * this.imageScale;
                                 })
-                                .onActionEnd((event: GestureEvent) => {
+                                .onActionEnd((_event: GestureEvent) => {
                                     this.previousOffsetX = this.imageOffsetX;
                                     this.previousOffsetY = this.imageOffsetY;
                                 }),
                             PinchGesture()
-                                .onActionStart((event: GestureEvent) => {
+                                .onActionStart((_event: GestureEvent) => {
                                     this.previousScale = this.imageScale;
                                 })
                                 .onActionUpdate((event: GestureEvent) => {
                                     this.imageScale = this.previousScale * event.scale;
                                 })
-                                .onActionEnd((event: GestureEvent) => {
+                                .onActionEnd((_event: GestureEvent) => {
                                     this.previousScale = this.imageScale;
                                 }),
                         )

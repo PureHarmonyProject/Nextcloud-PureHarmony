@@ -1,5 +1,4 @@
 import { rcp } from "@kit.RemoteCommunicationKit";
-import util from "@ohos.util";
 import { Logger } from "../Logger";
 import { NCommon } from "../Common";
 import { xml } from "@kit.ArkTS";
@@ -7,19 +6,7 @@ import { DirectoryEntry, DirEntryParserStateMachine } from "./DirEntryParserStat
 
 const TAG = "Nextcloud-Files";
 
-let Base64Util = new util.Base64Helper();
-let Utf8Encoder = util.TextEncoder.create('utf-8');
-let Utf8Decoder = util.TextDecoder.create('utf-8');
-
 let session: rcp.Session | null = null;
-
-function Base64Encode(msg: string): string {
-    return Base64Util.encodeToStringSync(Utf8Encoder.encodeInto(msg));
-}
-
-function MakeAuthorization() {
-    return 'basic ' + Base64Encode(NCommon.Preference.username + ":" + NCommon.Preference.password);
-}
 
 export async function ListFiles(path: string): Promise<DirectoryEntry[]> {
     path = "/remote.php/dav/files/" + NCommon.Preference.username + path;
@@ -27,7 +14,7 @@ export async function ListFiles(path: string): Promise<DirectoryEntry[]> {
 
     let sessionConfiguration: rcp.SessionConfiguration = {
         headers: {
-            'authorization': MakeAuthorization(),
+            'authorization': NCommon.MakeAuthorization(),
             'user-agent': NCommon.USER_AGENT(),
             'accept': 'text/plains'
         }

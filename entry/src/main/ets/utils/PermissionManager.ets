@@ -1,9 +1,35 @@
 import hilog from '@ohos.hilog';
-import { abilityAccessCtrl, bundleManager, common, Permissions } from '@kit.AbilityKit';
+import { abilityAccessCtrl, bundleManager, Permissions } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 
-class PermissionManager {
-    async verifyPermission(permission: Permissions): Promise<boolean> {
+export class PermissionManager {
+    static async RequestPermission(context: Context, permission: Permissions): Promise<boolean> {
+        let atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
+
+        if (await PermissionManager.verifyPermission(permission)) {
+            hilog.info(0x0000, 'testTag', `requestPermission success, permissionName->${permission}`);
+            return true;
+        }
+
+        let result = await atManager.requestPermissionsFromUser(context, [permission]);
+
+        for (let i = 0; i < result.permissions.length; i++) {
+            let rPerm = result.permissions[i];
+            let rResult = result.authResults[i];
+
+            if (rPerm == permission && rResult == abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {
+                hilog.info(0x0000, 'testTag', `requestPermission success, permissionName->${permission}`);
+                return true;
+            }
+        }
+
+        hilog.warn(0x0000, 'testTag', `requestPermission fail, ${permission}, requesting to open settings`);
+        await AlertDialog.show({ message: '请开启权限' });
+        await atManager.requestPermissionOnSetting(context, [permission]);
+        return false;
+    }
+
+    private static async verifyPermission(permission: Permissions): Promise<boolean> {
         let atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
         let tokenID: number = (await
         bundleManager.getBundleInfoForSelf(bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_APPLICATION))
@@ -17,35 +43,4 @@ class PermissionManager {
         });
         return result;
     }
-
-    async tryRequestPermission(context: common.UIAbilityContext, permission: Permissions): Promise<boolean> {
-        let atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();
-
-        if (await this.verifyPermission(permission)) {
-            hilog.info(0x0000, 'testTag', `requestPermission success, permissionName->${permission}`);
-            return true;
-        }
-
-        let result = await atManager.requestPermissionsFromUser(context, [permission]);
-        if (result.permissions[0] == permission &&
-            result.authResults[0] == abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {
-            hilog.info(0x0000, 'testTag', `requestPermission success, permissionName->${permission}`);
-            return true;
-        } else {
-            hilog.warn(0x0000, 'testTag',
-                `requestPermission fail, permissionName->${permission}, requesting to open settings`);
-            await AlertDialog.show({ message: '请开启权限' });
-            await atManager.requestPermissionOnSetting(context, [permission]);
-            return false;
-        }
-    }
 }
-
-export default PermissionManager;
-
-//
-// let hasPermission = this.verifyPermission(permissionName);
-// while (!hasPermission) {
-//     this.tryRequestPermission(getContext(this) as common.UIAbilityContext, permissionName);
-//     hasPermission = this.verifyPermission(permissionName);
-// }
