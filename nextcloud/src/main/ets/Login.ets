@@ -45,14 +45,9 @@ class LoginProcess {
     }
 
     private async loginPoll(): Promise<CoreLoginFlowV2Credentials | null> {
-        if (this.loginApi == null) {
-            Logger.Error(TAG, "unreachable");
-            return null;
-        }
-
         try {
             Logger.Debug(TAG, "  -> Polling...");
-            return (await this.loginApi.coreClientFlowLoginV2Poll(this.token)).data;
+            return (await this.loginApi!.coreClientFlowLoginV2Poll(this.token)).data;
         } catch (e) {
             return null;
         }

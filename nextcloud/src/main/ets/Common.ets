@@ -9,6 +9,14 @@ const TAG = "Nextcloud-Common";
 
 const USER_AGENT_PART = "Nextcloud Client for HarmonyOS on ";
 
+
+const SETTINGS_KEYS = [
+    "login.appPassword",
+    "login.username",
+    "login.server",
+];
+
+
 class NPreference {
     private pref: preferences.Preferences;
 
@@ -41,6 +49,11 @@ class NPreference {
     }
 
     private getStringPref(key: string): string | null {
+        if (!SETTINGS_KEYS.includes(key)) {
+            Logger.Error(TAG, "Invalid preference key: " + key);
+            return null;
+        }
+
         let value = this.pref.getSync(key, "");
         if (value === null) {
             Logger.Info(TAG, "No value stored for " + key);
@@ -56,6 +69,11 @@ class NPreference {
     }
 
     private setStringPref(key: string, value: string | null) {
+        if (!SETTINGS_KEYS.includes(key)) {
+            Logger.Error(TAG, "Invalid preference key: " + key);
+            return;
+        }
+
         Logger.Info(TAG, "Storing value for " + key);
         this.pref.putSync(key, value);
         this.pref.flush();
@@ -68,7 +86,6 @@ export namespace NCommon {
      * Preferences for Nextcloud
      */
     export let Preference: NPreference;
-
 
     export function UserAgent() {
         return USER_AGENT_PART + deviceInfo.marketName + " (" + deviceInfo.productModel + ")";

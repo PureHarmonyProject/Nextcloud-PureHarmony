@@ -61,20 +61,28 @@ export async function CreatePath(path: string): Promise<number> {
         return 201;
     }
 
-
-    let fullPath = "https://" + NCommon.Preference.hostname + "/remote.php/dav/files/" + NCommon.Preference.username + "/" + path + "/";
-    try {
-        let resp = await session.fetch(new rcp.Request(fullPath, "MKCOL", {}));
-        Logger.Info(TAG, "Create path response: " + resp.statusCode);
-        if (resp.statusCode !== 201) {
-            Logger.Error(TAG, "Failed to create path: " + resp.statusCode);
+    let segment = path.split("/");
+    let respCode = -1;
+    for (let i = 0; i < segment.length; i++) {
+        let thisLevel = segment.slice(0, i + 1).join("/");
+        if (!thisLevel) {
+            continue;
         }
-        return resp.statusCode;
-    } catch (e) {
-        Logger.Error(TAG, "Failed to create path: " + e);
+        let fullPath = "https://" + NCommon.Preference.hostname + "/remote.php/dav/files/" + NCommon.Preference.username + "/" + thisLevel + "/";
+        try {
+            let resp = await session.fetch(new rcp.Request(fullPath, "MKCOL", {}));
+            Logger.Info(TAG, `Create path '${thisLevel}', response: ${resp.statusCode}`);
+            respCode = resp.statusCode;
+            if (resp.statusCode !== 201 && resp.statusCode !== 405) {
+                Logger.Error(TAG, "Failed to create path: " + resp.statusCode);
+                return resp.statusCode;
+            }
+        } catch (e) {
+            Logger.Error(TAG, "Failed to create path: " + e);
+            return respCode;
+        }
     }
-
-    return -1;
+    return respCode;
 }
 
 export async function UploadFile(filename: string, path: string, fd: number): Promise<number> {
