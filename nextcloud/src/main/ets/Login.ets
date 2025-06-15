@@ -16,7 +16,7 @@ class LoginProcess {
         let apiConfig = new Configuration({
             basePath: "https://" + NCommon.Preference.hostname,
             baseOptions: {
-                headers: { "User-Agent": NCommon.USER_AGENT() },
+                headers: { "User-Agent": NCommon.UserAgent() },
             }
         });
 

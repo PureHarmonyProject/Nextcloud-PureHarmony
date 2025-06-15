@@ -1,9 +1,8 @@
-import { Configuration } from "./nextcloud-api-sdk";
-import { deviceInfo } from '@kit.BasicServicesKit'
-import { preferences } from "@kit.ArkData";
+import { deviceInfo } from '@kit.BasicServicesKit';
+import { preferences } from '@kit.ArkData';
 import { common } from '@kit.AbilityKit';
-import { Logger } from "./Logger";
-import util from "@ohos.util";
+import { Logger } from './Logger';
+import util from '@ohos.util';
 
 
 const TAG = "Nextcloud-Common";
@@ -71,7 +70,7 @@ export namespace NCommon {
     export let Preference: NPreference;
 
 
-    export function USER_AGENT() {
+    export function UserAgent() {
         return USER_AGENT_PART + deviceInfo.marketName + " (" + deviceInfo.productModel + ")";
     }
 
@@ -80,7 +79,7 @@ export namespace NCommon {
      * @param context The context to use for preferences
      */
     export function Initialise(context: common.UIAbilityContext) {
-        Logger.Info(TAG, "Common initialised with User-Agent: " + USER_AGENT());
+        Logger.Info(TAG, "Common initialised with User-Agent: " + UserAgent());
         Preference = new NPreference(context);
     }
 

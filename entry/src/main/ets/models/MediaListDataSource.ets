@@ -87,8 +87,8 @@ export class ImageListDataSource extends BasicDataSource<PhotoItem> {
     constructor(patterns: string[]) {
         super();
         let asyncLoad = async () => {
-            let phAccessHelper = PHelper.getPhotoAccessHelper(getContext(this));
-            let assets = await phAccessHelper.getAssets(FETCH_OPTIONS);
+            let helper = PHelper.getPhotoAccessHelper(getContext(this));
+            let assets = await helper.getAssets(FETCH_OPTIONS);
             for (let asset of await assets.getAllObjects()) {
                 for (let pattern of patterns) {
                     if (asset.displayName.match(pattern)) {

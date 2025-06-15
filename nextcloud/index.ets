@@ -10,4 +10,4 @@ export { BasicDataSource } from './src/main/ets/BasicDatasource';
 
 export { FilesDataSource } from './src/main/ets/FilesDataSource';
 
-export { UploadFile } from './src/main/ets/webdav/Uploader';
+export { CreatePath, UploadFile } from './src/main/ets/webdav/Uploader';

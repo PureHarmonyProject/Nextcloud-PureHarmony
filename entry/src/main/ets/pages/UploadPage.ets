@@ -2,10 +2,9 @@ import { Logger } from '../utils/Logger';
 import { PermissionManager } from '../utils/PermissionManager';
 import { ImageListDataSource, PhotoItem, UploadStatus } from '../models/MediaListDataSource';
 import { CategoriesListDataSource, Category, UploadLocation } from '../models/CategoryListDataSource';
-import { UploadFile } from 'nextcloud';
+import { CreatePath, UploadFile } from 'nextcloud';
 import { LengthMetrics, promptAction } from '@kit.ArkUI';
 import { TimeToPath } from '../utils/Utils';
-import { image } from '@kit.ImageKit';
 
 const TAG = "Page-UploadPage"
 
@@ -29,6 +28,78 @@ const DEFAULT_CATEGORIES: Category[] = [
         String.raw`^(alipay)_(\d+).(\w+)$`,
     ], LOCATION_OTHERS),
 ];
+
+enum UploadResult {
+    FAILED,
+    EXISTED,
+    SUCCEEDED,
+};
+
+async function doUploadAsset(asset: PhotoItem, category: Category): Promise<UploadResult> {
+    asset.uploadStatus = UploadStatus.Uploading;
+    let fd = await asset.getReadOnlyFd();
+    let path = category.location.toString() + TimeToPath(asset.dateTaken);
+    let mkdirResult = await CreatePath(path);
+    if (mkdirResult !== 201 && mkdirResult !== 409 && mkdirResult !== 405) {
+        // 405 is the status code for "already exists"
+        Logger.Error(TAG, `Failed to create path: ${path}`);
+        promptAction.showToast({
+            message: `Failed to create path: ${path}: ${mkdirResult}`,
+            duration: 2000,
+        });
+        await asset.close(fd);
+        return UploadResult.FAILED;
+    }
+
+    let ret: UploadResult = UploadResult.FAILED;
+
+    let message = "";
+    let uploadResult = await UploadFile(asset.displayName, path, fd);
+    if (uploadResult !== 201 && uploadResult !== 204) {
+        message = `Failed: ${asset.displayName}: ${uploadResult}`;
+        asset.uploadStatus = UploadStatus.Failed;
+        ret = UploadResult.FAILED;
+    } else if (uploadResult === 204) {
+        message = `File Existed: ${asset.displayName}`;
+        asset.uploadStatus = UploadStatus.Existed;
+        ret = UploadResult.EXISTED;
+    } else {
+        message = `Uploaded: ${asset.displayName}`;
+        asset.uploadStatus = UploadStatus.Uploaded;
+        ret = UploadResult.SUCCEEDED;
+    }
+
+    if (ret !== UploadResult.EXISTED) {
+        promptAction.showToast({ message, duration: 2000 });
+    }
+    await asset.close(fd);
+    return ret;
+}
+
+async function doUploadAllAssets(dataSource: ImageListDataSource, category: Category) {
+    const BATCH_SIZE = 8;
+    let total = Math.ceil(dataSource.totalCount() / BATCH_SIZE) * BATCH_SIZE;
+    for (let i = 0; i < total; i += BATCH_SIZE) {
+        let batch = dataSource.getDataRange(i, BATCH_SIZE);
+
+        let canStop = true;
+
+        let futures = batch.map(asset => {
+            return doUploadAsset(asset, category).then((result) => {
+                canStop = canStop && result === UploadResult.EXISTED;
+            });
+        });
+
+        await Promise.all(futures);
+        if (canStop) {
+            promptAction.showToast({
+                message: `Upload is probably completed`,
+                duration: 2000,
+            });
+            break;
+        }
+    }
+}
 
 @Component
 struct PhotoView {
@@ -62,41 +133,8 @@ struct PhotoView {
             this.thumbnail = await this.asset.asset.getThumbnail({ height: 200, width: 200 });
         })
         .onClick(async () => {
-            await this.doUpload();
+            await doUploadAsset(this.asset, this.category);
         })
-    }
-
-    private async doUpload() {
-        this.asset.uploadStatus = UploadStatus.Uploading;
-        let fd = await this.asset.getReadOnlyFd();
-        let path = this.category.location.toString() + TimeToPath(this.asset.dateTaken);
-        // let mkdirResult = await CreatePath(path);
-        // if (mkdirResult !== 201 && mkdirResult !== 409 && mkdirResult !== 405) {
-        //     // 405 is the status code for "already exists"
-        //     Logger.Error(TAG, `Failed to create path: ${path}`);
-        //     promptAction.showToast({
-        //         message: `Failed to create path: ${path}: ${mkdirResult}`,
-        //         duration: 2000,
-        //     });
-        //     await asset.close(fd);
-        //     return;
-        // }
-
-        let message = "";
-        let uploadResult = await UploadFile(this.asset.displayName, path, fd);
-        if (uploadResult !== 201 && uploadResult !== 204) {
-            message = `Failed: ${this.asset.displayName}: ${uploadResult}`;
-            this.asset.uploadStatus = UploadStatus.Failed;
-        } else if (uploadResult === 204) {
-            message = `File Existed: ${this.asset.displayName}`;
-            this.asset.uploadStatus = UploadStatus.Existed;
-        } else {
-            message = `Uploaded: ${this.asset.displayName}`;
-            this.asset.uploadStatus = UploadStatus.Uploaded;
-        }
-
-        promptAction.showToast({ message, duration: 2000 });
-        await this.asset.close(fd);
     }
 }
 
@@ -104,24 +142,38 @@ struct PhotoView {
 struct PhotosGridView {
     @ObjectLink category: Category;
     private scroller: Scroller = new Scroller();
+    private dataSource: ImageListDataSource = new ImageListDataSource(this.category.patterns);
 
     build() {
-        Grid(this.scroller) {
-            LazyForEach(new ImageListDataSource(this.category.patterns), (asset: PhotoItem) => {
-                GridItem() {
-                    PhotoView({ asset: asset, category: this.category })
-                }
-                .width('100%')
-            })
+        Stack() {
+            Grid(this.scroller) {
+                LazyForEach(this.dataSource, (asset: PhotoItem) => {
+                    GridItem() {
+                        PhotoView({ asset: asset, category: this.category })
+                    }
+                    .width('100%')
+                })
+            }
+            .columnsTemplate('1fr 1fr 1fr 1fr')
+            .scrollBar(BarState.On)
+            .edgeEffect(EdgeEffect.Spring)
+            .columnsGap(8)
+            .rowsGap(8)
+            .cachedCount(2)
+            .width('100%')
+            .height('auto')
+
+            Column() {
+                Button(`Upload All`)
+                    .onClick(() => {
+                        Logger.Info(TAG, `Upload all in '${this.category.name}'`);
+                        doUploadAllAssets(this.dataSource, this.category);
+                    })
+                    .width('30%')
+            }
+            .width('100%')
+            .position({ bottom: 5 })
         }
-        .columnsTemplate('1fr 1fr 1fr 1fr')
-        .scrollBar(BarState.On)
-        .edgeEffect(EdgeEffect.Spring)
-        .columnsGap(8)
-        .rowsGap(8)
-        .cachedCount(2)
-        .width('100%')
-        .height('auto')
     }
 }
 

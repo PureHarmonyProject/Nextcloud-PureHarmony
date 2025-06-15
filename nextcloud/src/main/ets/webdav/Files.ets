@@ -15,7 +15,7 @@ export async function ListFiles(path: string): Promise<DirectoryEntry[]> {
     let sessionConfiguration: rcp.SessionConfiguration = {
         headers: {
             'authorization': NCommon.MakeAuthorization(),
-            'user-agent': NCommon.USER_AGENT(),
+            'user-agent': NCommon.UserAgent(),
             'accept': 'text/plains'
         }
     };
@@ -69,7 +69,7 @@ export async function ListFiles(path: string): Promise<DirectoryEntry[]> {
         }
     };
 
-    parser.parse(options)
+    parser.parseXml(options)
 
     return machine.getDirEntryList(path);
 }

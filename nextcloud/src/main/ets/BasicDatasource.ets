@@ -11,6 +11,10 @@ export class BasicDataSource<T> implements IDataSource {
         return this.entries[index];
     }
 
+    public getDataRange(start: number, count: number): T[] {
+        return this.entries.slice(start, start + count);
+    }
+
     registerDataChangeListener(listener: DataChangeListener): void {
         if (this.listeners.indexOf(listener) < 0) {
             this.listeners.push(listener);

@@ -1,17 +1,18 @@
-import { rcp } from "@kit.RemoteCommunicationKit";
-import { NCommon } from "../Common";
-import fs from "@ohos.file.fs"
-import { Logger } from "../Logger";
+import { rcp } from '@kit.RemoteCommunicationKit';
+import { NCommon } from '../Common';
+import fs from '@ohos.file.fs';
+import { Logger } from '../Logger';
 
 const TAG = "Nextcloud-Upload";
 
-let session: rcp.Session | null = null;
 
-export async function CreatePath(path: string): Promise<number> {
+let __session: rcp.Session | null = null;
+
+function EnsureSession(): rcp.Session {
     let sessionConfiguration: rcp.SessionConfiguration = {
         headers: {
             'authorization': NCommon.MakeAuthorization(),
-            'user-agent': NCommon.USER_AGENT(),
+            'user-agent': NCommon.UserAgent(),
             'accept': 'text/plains'
         },
         requestConfiguration: {
@@ -23,15 +24,46 @@ export async function CreatePath(path: string): Promise<number> {
                 }
             }
         }
-    };
+    }
+    if (!__session) {
+        __session = rcp.createSession(sessionConfiguration);
+    }
+    return __session;
+}
 
-    if (!session) {
-        session = rcp.createSession(sessionConfiguration);
+export async function Exists(path: string, filename: string = ""): Promise<boolean> {
+    let session = EnsureSession();
+    let fullPath = "https://" + NCommon.Preference.hostname + "/remote.php/dav/files/" + NCommon.Preference.username + "/" + path + "/" + filename;
+    Logger.Info(TAG, "Checking if path exists: " + fullPath);
+
+    try {
+        let resp = await session.fetch(new rcp.Request(fullPath, "HEAD", {}));
+        if (resp.statusCode === 200 || resp.statusCode === 207) {
+            Logger.Info(TAG, "Path exists: " + fullPath);
+            return true;
+        } else if (resp.statusCode === 404) {
+            Logger.Info(TAG, "Path does not exist: " + fullPath);
+            return false;
+        } else {
+            Logger.Error(TAG, "Failed to check path existence: " + resp.statusCode);
+            return false;
+        }
+    } catch (e) {
+        Logger.Error(TAG, "Error checking path existence: " + e);
+        return false;
+    }
+}
+
+export async function CreatePath(path: string): Promise<number> {
+    let session = EnsureSession();
+    if (await Exists(path)) {
+        Logger.Info(TAG, "Path already exists: " + path);
+        return 201;
     }
 
 
+    let fullPath = "https://" + NCommon.Preference.hostname + "/remote.php/dav/files/" + NCommon.Preference.username + "/" + path + "/";
     try {
-        let fullPath = "https://" + NCommon.Preference.hostname + "/remote.php/dav/files/" + NCommon.Preference.username + "/" + path + "/";
         let resp = await session.fetch(new rcp.Request(fullPath, "MKCOL", {}));
         Logger.Info(TAG, "Create path response: " + resp.statusCode);
         if (resp.statusCode !== 201) {
@@ -46,25 +78,10 @@ export async function CreatePath(path: string): Promise<number> {
 }
 
 export async function UploadFile(filename: string, path: string, fd: number): Promise<number> {
-    let sessionConfiguration: rcp.SessionConfiguration = {
-        headers: {
-            'authorization': NCommon.MakeAuthorization(),
-            'user-agent': NCommon.USER_AGENT(),
-            'accept': 'text/plains'
-        },
-        requestConfiguration: {
-            tracing: {
-                httpEventsHandler: {
-                    onUploadProgress: (progress: number) => {
-                        Logger.Info(TAG, "Upload progress: " + progress);
-                    },
-                }
-            }
-        }
-    };
-
-    if (!session) {
-        session = rcp.createSession(sessionConfiguration);
+    let session = EnsureSession();
+    if (await Exists(path, filename)) {
+        Logger.Info(TAG, "File already exists: " + filename);
+        return 204; // No Content, file already exists
     }
 
     let stream = await fs.fdopenStream(fd, "r");
