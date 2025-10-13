@@ -37,7 +37,6 @@ enum UploadResult {
 
 async function doUploadAsset(asset: PhotoItem, category: Category): Promise<UploadResult> {
     asset.uploadStatus = UploadStatus.Uploading;
-    let fd = await asset.getReadOnlyFd();
     let path = category.location.toString() + TimeToPath(asset.dateTaken);
     let mkdirResult = await CreatePath(path);
     if (mkdirResult !== 201 && mkdirResult !== 409 && mkdirResult !== 405) {
@@ -47,14 +46,15 @@ async function doUploadAsset(asset: PhotoItem, category: Category): Promise<Uplo
             message: `Failed to create path: ${path}: ${mkdirResult}`,
             duration: 2000,
         });
-        await asset.close(fd);
         return UploadResult.FAILED;
     }
 
     let ret: UploadResult = UploadResult.FAILED;
 
     let message = "";
+    let fd = await asset.getReadOnlyFd();
     let uploadResult = await UploadFile(asset.displayName, path, fd);
+    asset.close(fd);
     if (uploadResult !== 201 && uploadResult !== 204) {
         message = `Failed: ${asset.displayName}: ${uploadResult}`;
         asset.uploadStatus = UploadStatus.Failed;
@@ -72,7 +72,6 @@ async function doUploadAsset(asset: PhotoItem, category: Category): Promise<Uplo
     if (ret !== UploadResult.EXISTED) {
         promptAction.showToast({ message, duration: 2000 });
     }
-    await asset.close(fd);
     return ret;
 }
 
@@ -184,8 +183,10 @@ export struct UploadPage {
     @State private categories: CategoriesListDataSource = new CategoriesListDataSource();
 
     async aboutToAppear() {
-        let result = await PermissionManager.RequestPermission(getContext(this), 'ohos.permission.READ_IMAGEVIDEO')
-        Logger.Info(TAG, `Request permission result: ${result}`);
+        let result1 = await PermissionManager.RequestPermission(getContext(this), 'ohos.permission.READ_IMAGEVIDEO');
+        Logger.Info(TAG, `Request permission result: ${result1}`);
+        let result2 = await PermissionManager.RequestPermission(getContext(this), 'ohos.permission.MEDIA_LOCATION');
+        Logger.Info(TAG, `Request permission result: ${result2}`);
         this.categories.loadCategories(DEFAULT_CATEGORIES);
     }
 

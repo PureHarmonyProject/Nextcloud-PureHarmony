@@ -16,6 +16,15 @@
             "EntryAbility"
           ]
         }
+      },
+      {
+        "name": "ohos.permission.MEDIA_LOCATION",
+        "reason": "$string:permission_image_video_reason",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ]
+        }
       }
     ],
     "deviceTypes": [
