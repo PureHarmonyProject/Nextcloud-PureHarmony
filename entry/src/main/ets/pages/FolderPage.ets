@@ -1,9 +1,9 @@
-import { DirectoryEntry, FilesDataSource, NCommon } from "nextcloud";
-import { Logger } from "../utils/Logger";
-import { Path } from "../utils/Path";
-import { PreviewPageProps, PREVIEW_PAGE_NAME } from "./PreviewPage";
-import { promptAction } from "@kit.ArkUI";
-import { FormatBytes } from "../utils/Utils";
+import { DirectoryEntry, FilesDataSource, NCommon } from 'nextcloud';
+import { Logger } from '../utils/Logger';
+import { Path } from '../utils/Path';
+import { PREVIEW_PAGE_NAME, PreviewPageProps } from './PreviewPage';
+import { promptAction } from '@kit.ArkUI';
+import { FormatBytes } from '../utils/Utils';
 
 const TAG = "Page-FolderPage";
 
@@ -14,6 +14,11 @@ struct FolderPage {
     @Consume('FolderList.Lanes') nLanes: number;
     @Consume('FolderList.PathStack') pageInfos: NavPathStack;
     @Prop currentPath: Path;
+
+    static formatSubtitle(mime: string, size: string) {
+        let mimeParts = mime.split('/');
+        return [mimeParts[1] ?? mimeParts[0] ?? mime, size].join('·');
+    }
 
     async onItemClicked(entry: DirectoryEntry) {
         let pathInfo: NavPathInfo;
@@ -33,6 +38,34 @@ struct FolderPage {
         }
 
         this.pageInfos.pushPath(pathInfo);
+    }
+
+    @Builder
+    navTitleBar() {
+        Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
+            Text(this.currentPath.isRootPath() ? $r('app.string.app_name') : this.titlePath())
+                .fontSize($r('sys.float.titlebar_main_title_text_font_size'))
+                .height('100%')
+                .margin(8)
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .fontWeight(FontWeight.Bold)
+
+            if (!this.currentPath.isRootPath()) {
+                Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+                    SymbolGlyph($r('sys.symbol.house'))
+                        .fontColor([$r('sys.color.titlebar_icon_color')])
+                        .fontSize(24)
+                }
+                .width(40)
+                .height(40)
+                .onClick(() => {
+                    Logger.Info(TAG, `Go to root path`);
+                    this.pageInfos.clear();
+                })
+            }
+        }
+        .margin({ left: 8, right: 16 })
     }
 
     build() {
@@ -62,7 +95,7 @@ struct FolderPage {
                                         .margin({ bottom: 2 })
 
                                     Text(d.isDirectory ? 'directory' :
-                                        (d.mime + ' (' + FormatBytes(d.size) + ')'))
+                                        (FolderPage.formatSubtitle(d.mime, FormatBytes(d.size))))
                                         .fontSize(10)
                                         .maxLines(1)
                                         .fontStyle(FontStyle.Italic)
@@ -89,7 +122,12 @@ struct FolderPage {
             .flexGrow(1)
             .cachedCount(5)
         }
-        .title(this.currentPath.parentName + "/" + (this.currentPath?.leaf ?? ""))
+        .title(this.navTitleBar)
+    }
+
+    private titlePath() {
+        Logger.Info(TAG, `title: ${JSON.stringify(this.currentPath)}`);
+        return this.currentPath.parentName + "/" + (this.currentPath.leaf ?? "");
     }
 }
 

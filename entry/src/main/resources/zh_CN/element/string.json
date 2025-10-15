@@ -21,12 +21,16 @@
       "value": "文件"
     },
     {
-      "name": "tab_photos",
-      "value": "相片"
+      "name": "permission_media_location_reason",
+      "value": "用于在备份的媒体中保存位置信息"
     },
     {
-      "name": "tab_discover",
-      "value": "发现"
+      "name": "tab_login",
+      "value": "登录"
+    },
+    {
+      "name": "tab_upload",
+      "value": "媒体上传"
     }
   ]
 }

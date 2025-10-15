@@ -19,7 +19,7 @@
       },
       {
         "name": "ohos.permission.MEDIA_LOCATION",
-        "reason": "$string:permission_image_video_reason",
+        "reason": "$string:permission_media_location_reason",
         "usedScene": {
           "abilities": [
             "EntryAbility"

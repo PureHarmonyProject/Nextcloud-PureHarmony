@@ -17,16 +17,20 @@
       "value": "Backup your image and videos"
     },
     {
+      "name": "permission_media_location_reason",
+      "value": "Backup your image and videos with GPS locations"
+    },
+    {
       "name": "tab_files",
       "value": "Files"
     },
     {
-      "name": "tab_photos",
-      "value": "Photos"
+      "name": "tab_login",
+      "value": "Login"
     },
     {
-      "name": "tab_discover",
-      "value": "Discover"
+      "name": "tab_upload",
+      "value": "Upload"
     }
   ]
 }

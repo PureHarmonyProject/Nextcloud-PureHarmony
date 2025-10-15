@@ -15,22 +15,27 @@ const EXIT_TOAST_DURATION: number = 2000;
 struct Index {
     @State loginWebviewVisible: boolean = false;
     @State currentIndex: number = 0;
-    @Provide('FolderList.Lanes') listLanes: number = 1;
+    @Provide('FolderList.Lanes') listLanes: number = 2;
     @Provide('FolderList.PathStack') pathStack: NavPathStack = new NavPathStack();
     private controller: webview.WebviewController = new webview.WebviewController();
     private loginProcess = new LoginProcess();
     private exitForSure: boolean = false;
 
     onBackPress(): boolean | void {
+        Logger.Info(TAG, `onBackPressed`);
         if (this.pathStack.size() === 0) {
             if (this.exitForSure) {
                 return false;
             }
 
-            promptAction.showToast({
-                message: "Press again to exit",
-                duration: EXIT_TOAST_DURATION,
-            });
+            try {
+                this.getUIContext().getPromptAction().showToast({
+                    message: "Press again to exit",
+                    duration: EXIT_TOAST_DURATION,
+                });
+            } catch (error) {
+                Logger.Error(TAG, `Failed to show toast?`);
+            }
 
             this.exitForSure = true;
             setTimeout(() => {
@@ -89,9 +94,7 @@ struct Index {
     }
 
     aboutToAppear(): void {
-        if (this.loginProcess.hasAppPassword()) {
-            this.pathStack.clear();
-        }
+        Logger.Info(TAG, `aboutToAppear`);
     }
 
     onPageShow() {
@@ -99,9 +102,7 @@ struct Index {
         App.setImageRawDataCacheSize(1024 * 1024 * 100); // 100MB
         App.setImageFileCacheSize(1024 * 1024 * 500); // 100MB
 
-        if (this.loginProcess.hasAppPassword()) {
-            this.pathStack.clear();
-        } else {
+        if (!this.loginProcess.hasAppPassword()) {
             promptAction.showToast({
                 message: "Go to tab 2 to login",
                 duration: 5000,
@@ -120,21 +121,9 @@ struct Index {
                     .mode(NavigationMode.Stack)
 
                     Row({ space: 10 }) {
-                        Button("Load Root")
-                            .onClick(() => {
-                                this.pathStack.clear();
-                            })
-                            .width(100)
-
-                        Button("Go Up")
-                            .onClick(() => {
-                                this.pathStack.pop();
-                            })
-                            .width(100)
-
                         Button("Lanes: " + this.listLanes)
                             .onClick(() => {
-                                this.listLanes = this.listLanes === 1 ? 2 : 1;
+                                this.listLanes = (this.listLanes % 3) + 1;
                             })
                             .width(100)
                     }
@@ -190,14 +179,14 @@ struct Index {
                         .border({ width: 1, color: Color.Red })
                 }
             }
-            .tabBar("Login Page")
+            .tabBar($r('app.string.tab_login'))
 
             TabContent() {
                 UploadPage()
                     .width('100%')
                     .height('100%')
             }
-            .tabBar("Image Upload")
+            .tabBar($r('app.string.tab_upload'))
         }
         .width('100%')
         .height('100%')
