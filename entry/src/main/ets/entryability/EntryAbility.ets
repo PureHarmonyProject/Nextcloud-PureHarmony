@@ -1,7 +1,6 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { window } from '@kit.ArkUI';
-import { NCommon } from 'nextcloud';
-import { Logger } from '../utils/Logger';
+import { Logger, NCommon } from 'nextcloud';
 import { GlobalStorage } from '../utils/GlobalStorage';
 
 const TAG = 'EntryAbility';

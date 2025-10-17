@@ -1,7 +1,7 @@
 import { dataSharePredicates } from '@kit.ArkData';
 import { BasicDataSource } from 'nextcloud';
 import { photoAccessHelper as PHelper } from '@kit.MediaLibraryKit';
-import { Logger } from '../utils/Logger';
+import { Logger } from 'nextcloud';
 
 const TAG = 'MediaListDataSource';
 

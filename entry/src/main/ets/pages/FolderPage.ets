@@ -1,5 +1,4 @@
-import { DirectoryEntry, FilesDataSource, NCommon } from 'nextcloud';
-import { Logger } from '../utils/Logger';
+import { DirectoryEntry, FilesDataSource, Logger, NCommon } from 'nextcloud';
 import { Path } from '../utils/Path';
 import { PREVIEW_PAGE_NAME, PreviewPageProps } from './PreviewPage';
 import { promptAction } from '@kit.ArkUI';

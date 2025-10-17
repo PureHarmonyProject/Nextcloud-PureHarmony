@@ -41,11 +41,15 @@ class NPreference {
     }
 
     get hostname(): string {
-        return this.getStringPref("login.server") ?? "nextcloud.org";
+        return this.getStringPref("login.server") ?? "nextcloud.com";
     }
 
     set hostname(value: string) {
         this.setStringPref("login.server", value);
+    }
+
+    public hasLogon() {
+        return this.password !== '' && this.username !== '';
     }
 
     private getStringPref(key: string): string | null {

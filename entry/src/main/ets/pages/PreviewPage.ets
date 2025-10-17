@@ -1,5 +1,5 @@
 import { DirectoryEntry, NCommon } from "nextcloud";
-import { Logger } from "../utils/Logger";
+import { Logger } from "nextcloud";
 import { Path } from "../utils/Path";
 
 const TAG: string = "Page-PreviewPage";

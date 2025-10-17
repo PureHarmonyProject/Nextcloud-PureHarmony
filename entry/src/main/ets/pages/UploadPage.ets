@@ -1,8 +1,7 @@
-import { Logger } from '../utils/Logger';
+import { CreatePath, Logger, UploadFile } from 'nextcloud';
 import { PermissionManager } from '../utils/PermissionManager';
 import { ImageListDataSource, PhotoItem, UploadStatus } from '../models/MediaListDataSource';
 import { CategoriesListDataSource, Category, UploadLocation } from '../models/CategoryListDataSource';
-import { CreatePath, UploadFile } from 'nextcloud';
 import { LengthMetrics, promptAction } from '@kit.ArkUI';
 import { TimeToPath } from '../utils/Utils';
 
