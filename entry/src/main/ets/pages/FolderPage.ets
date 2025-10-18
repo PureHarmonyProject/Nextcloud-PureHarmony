@@ -1,7 +1,7 @@
 import { DirectoryEntry, FilesDataSource, Logger, NCommon } from 'nextcloud';
 import { Path } from '../utils/Path';
 import { PREVIEW_PAGE_NAME, PreviewPageProps } from './PreviewPage';
-import { promptAction } from '@kit.ArkUI';
+import { LengthMetrics, promptAction } from '@kit.ArkUI';
 import { FormatBytes } from '../utils/Utils';
 
 const TAG = "Page-FolderPage";
@@ -114,6 +114,7 @@ struct FolderPage {
                     }
                 })
             }
+            .fadingEdge(true, { fadingEdgeLength: LengthMetrics.vp(80) })
             .lanes(this.nLanes)
             .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
             .width('auto')

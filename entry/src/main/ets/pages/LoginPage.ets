@@ -94,7 +94,7 @@ export struct LoginPage {
                     })
                 }
 
-                Text($r('app.string.tab_login'))
+                Text($r('app.string.login'))
                     .fontSize($r('sys.float.titlebar_main_title_text_font_size'))
                     .fontWeight(FontWeight.Bold)
                     .textAlign(TextAlign.Center)

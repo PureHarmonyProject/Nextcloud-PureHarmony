@@ -25,12 +25,44 @@
       "value": "Files"
     },
     {
-      "name": "tab_login",
+      "name": "login",
       "value": "Login"
     },
     {
       "name": "tab_upload",
       "value": "Upload"
+    },
+    {
+      "name": "tab_settings",
+      "value": "Settings"
+    },
+    {
+      "name": "login_info",
+      "value": "Login Info"
+    },
+    {
+      "name": "username",
+      "value": "Username"
+    },
+    {
+      "name": "hostname",
+      "value": "Host name"
+    },
+    {
+      "name": "upload",
+      "value": "Upload"
+    },
+    {
+      "name": "replace_existing_files",
+      "value": "Replace existing files"
+    },
+    {
+      "name": "yes",
+      "value": "Yes"
+    },
+    {
+      "name": "no",
+      "value": "No"
     }
   ]
 }

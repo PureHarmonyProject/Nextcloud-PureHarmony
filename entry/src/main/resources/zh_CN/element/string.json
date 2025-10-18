@@ -25,12 +25,44 @@
       "value": "用于在备份的媒体中保存位置信息"
     },
     {
-      "name": "tab_login",
+      "name": "login",
       "value": "登录"
     },
     {
       "name": "tab_upload",
       "value": "媒体上传"
+    },
+    {
+      "name": "tab_settings",
+      "value": "设置"
+    },
+    {
+      "name": "login_info",
+      "value": "登录信息"
+    },
+    {
+      "name": "username",
+      "value": "用户名"
+    },
+    {
+      "name": "hostname",
+      "value": "主机名"
+    },
+    {
+      "name": "upload",
+      "value": "上传"
+    },
+    {
+      "name": "replace_existing_files",
+      "value": "替换现有文件"
+    },
+    {
+      "name": "yes",
+      "value": "是"
+    },
+    {
+      "name": "no",
+      "value": "否"
     }
   ]
 }

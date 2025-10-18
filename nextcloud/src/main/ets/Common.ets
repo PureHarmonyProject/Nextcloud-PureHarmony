@@ -1,5 +1,5 @@
 import { deviceInfo } from '@kit.BasicServicesKit';
-import { preferences } from '@kit.ArkData';
+import { preferences, ValueType } from '@kit.ArkData';
 import { common } from '@kit.AbilityKit';
 import { Logger } from './Logger';
 import util from '@ohos.util';
@@ -9,15 +9,18 @@ const TAG = "Nextcloud-Common";
 
 const USER_AGENT_PART = "Nextcloud Client for HarmonyOS on ";
 
-
-const SETTINGS_KEYS = [
-    "login.appPassword",
-    "login.username",
-    "login.server",
-];
-
+const LOGIN_APP_PASSWORD = "login.appPassword";
+const LOGIN_USERNAME = "login.username";
+const LOGIN_SERVER = "login.server";
+const UPLOAD_REPLACE_EXISTING = "upload.replaceExisting";
 
 class NPreference {
+    static SETTINGS_KEYS: string[] = [
+        LOGIN_APP_PASSWORD,
+        LOGIN_USERNAME,
+        LOGIN_SERVER,
+        UPLOAD_REPLACE_EXISTING,
+    ];
     private pref: preferences.Preferences;
 
     constructor(context: common.UIAbilityContext) {
@@ -25,62 +28,75 @@ class NPreference {
     }
 
     get password(): string {
-        return this.getStringPref("login.appPassword") ?? "";
+        return this.getPref(LOGIN_APP_PASSWORD, "");
     }
 
     set password(value: string) {
-        this.setStringPref("login.appPassword", value);
+        this.setPref(LOGIN_APP_PASSWORD, value);
     }
 
     get username(): string {
-        return this.getStringPref("login.username") ?? "username";
+        return this.getPref(LOGIN_USERNAME, "username");
     }
 
     set username(value: string) {
-        this.setStringPref("login.username", value);
+        this.setPref(LOGIN_USERNAME, value);
     }
 
     get hostname(): string {
-        return this.getStringPref("login.server") ?? "nextcloud.com";
+        return this.getPref(LOGIN_SERVER, "nextcloud.com");
     }
 
     set hostname(value: string) {
-        this.setStringPref("login.server", value);
+        this.setPref(LOGIN_SERVER, value);
+    }
+
+    get replaceExistingFiles(): boolean {
+        return this.getPref(UPLOAD_REPLACE_EXISTING, false);
+    }
+
+    set replaceExistingFiles(doReplace: boolean) {
+        this.setPref(UPLOAD_REPLACE_EXISTING, doReplace);
     }
 
     public hasLogon() {
         return this.password !== '' && this.username !== '';
     }
 
-    private getStringPref(key: string): string | null {
-        if (!SETTINGS_KEYS.includes(key)) {
+    private getPref<T>(key: string, defaultValue: T): T {
+        if (!NPreference.SETTINGS_KEYS.includes(key)) {
             Logger.Error(TAG, "Invalid preference key: " + key);
-            return null;
+            return defaultValue;
         }
 
-        let value = this.pref.getSync(key, "");
-        if (value === null) {
+        try {
+            let value = this.pref.getSync(key, "") as T;
+            if (value === null) {
+                Logger.Info(TAG, "No value stored for " + key);
+                return defaultValue;
+            }
+
+            return value as T;
+        } catch (error) {
             Logger.Info(TAG, "No value stored for " + key);
-            return null;
+            return defaultValue;
         }
 
-        if (value === "") {
-            Logger.Info(TAG, "No value stored for " + key);
-            return null;
-        }
-
-        return value as string;
     }
 
-    private setStringPref(key: string, value: string | null) {
-        if (!SETTINGS_KEYS.includes(key)) {
+    private setPref(key: string, value: ValueType) {
+        if (!NPreference.SETTINGS_KEYS.includes(key)) {
             Logger.Error(TAG, "Invalid preference key: " + key);
             return;
         }
 
         Logger.Info(TAG, "Storing value for " + key);
-        this.pref.putSync(key, value);
-        this.pref.flush();
+        try {
+            this.pref.putSync(key, value);
+            this.pref.flushSync();
+        } catch (error) {
+            Logger.Error(TAG, `failed to put and flush preferences: ${JSON.stringify(error)}`);
+        }
     }
 }
 
@@ -123,7 +139,7 @@ export namespace NCommon {
         return Base64Util.encodeToStringSync(Utf8Encoder.encodeInto(msg));
     }
 
-    export function MakeAuthorization() {
+    export function MakeAuthorization(): string {
         return 'basic ' + Base64Encode(NCommon.Preference.username + ":" + NCommon.Preference.password);
     }
 }

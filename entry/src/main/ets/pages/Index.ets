@@ -4,6 +4,7 @@ import { Path } from '../utils/Path';
 import { FolderPageBuilder } from './FolderPage';
 import { UploadPage } from './UploadPage';
 import { LoginPage } from './LoginPage';
+import { SettingsPage } from './SettingsPage';
 
 const TAG = "Page-Index";
 
@@ -16,14 +17,25 @@ struct Index {
     @Provide('FolderList.Lanes') listLanes: number = 2;
     @Provide('FolderList.PathStack') pathStack: NavPathStack = new NavPathStack();
     @State private loginPageDialogId: number = 0;
-    private exitForSure: boolean = false;
+    private backedOnce: boolean = false;
 
-    onBackPress(): boolean | void {
-        Logger.Info(TAG, `onBackPressed`);
-        if (this.pathStack.size() === 0) {
-            if (this.exitForSure) {
-                return false;
-            }
+    onBackPress(): boolean {
+        Logger.Info(TAG, `onBackPressed on tab ${this.currentIndex}`);
+        if (this.currentIndex !== 0) {
+            return false; // not on files tab, let system handle it
+        }
+
+        if (this.pathStack.size() > 0) {
+            return true; // go back to parent level
+        }
+
+        if (this.backedOnce) {
+            return false; // exit directly
+        } else {
+            this.backedOnce = true;
+            setTimeout(() => {
+                this.backedOnce = false;
+            }, EXIT_TOAST_DURATION);
 
             try {
                 this.getUIContext().getPromptAction().showToast({
@@ -33,16 +45,8 @@ struct Index {
             } catch (error) {
                 Logger.Error(TAG, `Failed to show toast?`);
             }
-
-            this.exitForSure = true;
-            setTimeout(() => {
-                this.exitForSure = false;
-            }, EXIT_TOAST_DURATION);
-
             return true;
         }
-
-        return true;
     }
 
     aboutToAppear(): void {
@@ -102,7 +106,6 @@ struct Index {
                 }
             }
             .tabBar($r("app.string.tab_files"))
-            .tabIndex(this.currentIndex)
 
             TabContent() {
                 UploadPage()
@@ -110,7 +113,17 @@ struct Index {
                     .height('100%')
             }
             .tabBar($r('app.string.tab_upload'))
+
+            TabContent() {
+                SettingsPage()
+                    .width('100%')
+                    .height('100%')
+            }
+            .tabBar($r('app.string.tab_settings'))
         }
+        .onChange((index: number) => {
+            this.currentIndex = index;
+        })
         .width('100%')
         .height('100%')
         .scrollable(false)

@@ -3,18 +3,26 @@ import { NCommon } from '../Common';
 import fs from '@ohos.file.fs';
 import { Logger } from '../Logger';
 
+
 const TAG = "Nextcloud-Upload";
 
 
-let __session: rcp.Session | null = null;
+function CreateSession(extraHeaders?: Map<string, string>): rcp.Session {
+    let headers: rcp.RequestHeaders = {};
+    headers['X-NC-WebDAV-AutoMkcol'] = '1';
 
-function EnsureSession(): rcp.Session {
+    if (extraHeaders !== undefined) {
+        for (let item of extraHeaders) {
+            headers[item[0]] = item[1];
+        }
+    }
+
+    headers['authorization'] = NCommon.MakeAuthorization();
+    headers['user-agent'] = NCommon.UserAgent();
+    headers['accept'] = 'text/plains';
+
     let sessionConfiguration: rcp.SessionConfiguration = {
-        headers: {
-            'authorization': NCommon.MakeAuthorization(),
-            'user-agent': NCommon.UserAgent(),
-            'accept': 'text/plains'
-        },
+        headers: headers,
         requestConfiguration: {
             tracing: {
                 httpEventsHandler: {
@@ -25,14 +33,15 @@ function EnsureSession(): rcp.Session {
             }
         }
     }
-    if (!__session) {
-        __session = rcp.createSession(sessionConfiguration);
+    try {
+        return rcp.createSession(sessionConfiguration);
+    } catch (error) {
+        Logger.Error(TAG, `failed to create session: ${JSON.stringify(error)}`);
+        throw error as Error;
     }
-    return __session;
 }
 
-export async function Exists(path: string, filename: string = ""): Promise<boolean> {
-    let session = EnsureSession();
+export async function Exists(session: rcp.Session, path: string, filename: string = ""): Promise<boolean> {
     let fullPath = "https://" + NCommon.Preference.hostname + "/remote.php/dav/files/" + NCommon.Preference.username + "/" + path + "/" + filename;
     Logger.Info(TAG, "Checking if path exists: " + fullPath);
 
@@ -55,9 +64,10 @@ export async function Exists(path: string, filename: string = ""): Promise<boole
 }
 
 export async function CreatePath(path: string): Promise<number> {
-    let session = EnsureSession();
-    if (await Exists(path)) {
+    let session = CreateSession();
+    if (await Exists(session, path)) {
         Logger.Info(TAG, "Path already exists: " + path);
+        session.close();
         return 201;
     }
 
@@ -75,39 +85,54 @@ export async function CreatePath(path: string): Promise<number> {
             respCode = resp.statusCode;
             if (resp.statusCode !== 201 && resp.statusCode !== 405) {
                 Logger.Error(TAG, "Failed to create path: " + resp.statusCode);
+                session.close();
                 return resp.statusCode;
             }
         } catch (e) {
             Logger.Error(TAG, "Failed to create path: " + e);
+            session.close();
             return respCode;
         }
     }
+    session.close();
     return respCode;
 }
 
-export async function UploadFile(filename: string, path: string, fd: number): Promise<number> {
-    let session = EnsureSession();
-    if (await Exists(path, filename)) {
-        Logger.Info(TAG, "File already exists: " + filename);
-        return 204; // No Content, file already exists
+export async function UploadFile(filename: string, mTime: number, path: string, fd: number): Promise<number> {
+    let extraHeaders = new Map<string, string>();
+    extraHeaders.set('X-OC-MTime', `${Math.round(mTime / 1000)}`);
+    let session = CreateSession(extraHeaders);
+
+    if (!NCommon.Preference.replaceExistingFiles) {
+        if (await Exists(session, path, filename)) {
+            Logger.Info(TAG, `file already exists: ${filename}, not replacing as per settings`);
+            session.close();
+            return 204; // No Content, file already exists
+        }
     }
 
-    let stream = await fs.fdopenStream(fd, "r");
-    Logger.Info(TAG, "File stream opened");
+    let stream: fs.Stream;
+    try {
+        stream = await fs.fdopenStream(fd, "r");
+        Logger.Debug(TAG, "File stream opened");
+    } catch (error) {
+        Logger.Error(TAG, `failed to create readonly stream: ${JSON.stringify(error)}`);
+        throw error as Error;
+    }
 
     let fullpath = "https://" + NCommon.Preference.hostname + "/remote.php/dav/files/" + NCommon.Preference.username + "/" + path + "/" + filename;
     Logger.Info(TAG, "Uploading file to " + fullpath);
 
+    let ret = -1;
     try {
         let resp = await session.put(fullpath, new rcp.UploadFromStream(stream));
         Logger.Info(TAG, "Upload response: " + resp.statusCode);
-        if (resp.statusCode !== 201) {
-            Logger.Error(TAG, "Failed to upload file: " + resp.statusCode);
-        }
-        return resp.statusCode;
+        ret = resp.statusCode;
     } catch (e) {
         Logger.Error(TAG, "Failed to upload file: " + e);
     }
 
-    return -1;
+    stream.closeSync();
+    session.close();
+    return ret;
 }

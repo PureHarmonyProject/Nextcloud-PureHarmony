@@ -52,7 +52,7 @@ async function doUploadAsset(asset: PhotoItem, category: Category): Promise<Uplo
 
     let message = "";
     let fd = await asset.getReadOnlyFd();
-    let uploadResult = await UploadFile(asset.displayName, path, fd);
+    let uploadResult = await UploadFile(asset.displayName, asset.dateTakenMs, path, fd);
     asset.close(fd);
     if (uploadResult !== 201 && uploadResult !== 204) {
         message = `Failed: ${asset.displayName}: ${uploadResult}`;

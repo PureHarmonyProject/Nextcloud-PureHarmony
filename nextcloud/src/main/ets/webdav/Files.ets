@@ -1,8 +1,8 @@
-import { rcp } from "@kit.RemoteCommunicationKit";
-import { Logger } from "../Logger";
-import { NCommon } from "../Common";
-import { xml } from "@kit.ArkTS";
-import { DirectoryEntry, DirEntryParserStateMachine } from "./DirEntryParserStateMachine";
+import { rcp } from '@kit.RemoteCommunicationKit';
+import { Logger } from '../Logger';
+import { NCommon } from '../Common';
+import { xml } from '@kit.ArkTS';
+import { DirectoryEntry, DirEntryParserStateMachine } from './DirEntryParserStateMachine';
 
 const TAG = "Nextcloud-Files";
 

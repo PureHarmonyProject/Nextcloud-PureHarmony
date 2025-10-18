@@ -1,6 +1,8 @@
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { BackupExtensionAbility, BundleVersion, fileIo } from '@kit.CoreFileKit';
-import { NCommon } from 'nextcloud';
+import { Logger, NCommon } from 'nextcloud';
+
+const TAG = 'entry/Backup';
 
 interface BackupContentV1 {
     server: string;
@@ -35,14 +37,14 @@ export default class EntryBackupAbility extends BackupExtensionAbility {
     }
 
     async onRestore(bundleVersion: BundleVersion) {
-        hilog.info(0x0000, 'testTag', 'onRestore ok %{public}s', JSON.stringify(bundleVersion));
+        Logger.Info(TAG, `onRestore ok ${JSON.stringify(bundleVersion)}`);
 
         // read from file
         let filePath = this.context.backupDir + '/nextcloud_backup.json';
         let file = fileIo.createReadStream(filePath);
         let data = file.read();
         if (!data) {
-            hilog.error(0x0000, 'testTag', 'onRestore failed, no data found in file: %{public}s', filePath);
+            Logger.Error(TAG, `onRestore failed, no data found in file: ${filePath}`);
             return;
         }
 
@@ -50,7 +52,7 @@ export default class EntryBackupAbility extends BackupExtensionAbility {
         NCommon.Preference.hostname = object.settings.server;
         NCommon.Preference.username = object.settings.username;
         NCommon.Preference.password = object.settings.appPassword;
-        hilog.info(0x0000, 'testTag', 'onRestore completed with data: %{public}s', JSON.stringify(object));
+        Logger.Info(TAG, `onRestore completed with data: ${JSON.stringify(object)}`);
 
         file.close();
     }
