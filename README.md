@@ -24,9 +24,16 @@ Supported Features:
 
 ## Screenshots
 
-<img src="./imgs/1.login.jpg" width="60" alt="Login Screen"></img>
-<img src="./imgs/2.home.jpg" width="60" alt="Login Screen"></img>
-<img src="./imgs/3.uploads.jpg" width="60" alt="Login Screen"></img>
+Login Page:
+
+<img src="./imgs/login.1.jpg" width="20%" alt="Login Screen"></img>
+<img src="./imgs/login.2.jpg" width="20%" alt="Login Screen"></img>
+
+Home, Upload and Settings Pages:
+
+<img src="./imgs/home.jpg" width="20%" alt="Home Page"></img>
+<img src="./imgs/upload.jpg" width="20%" alt="Upload Page"></img>
+<img src="./imgs/settings.jpg" width="20%" alt="Settings Page"></img>
 
 ## Contributions
 
