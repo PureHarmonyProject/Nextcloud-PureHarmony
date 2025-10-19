@@ -24,16 +24,13 @@ Supported Features:
 
 ## Screenshots
 
-Login Page:
-
-<img src="./imgs/login.1.jpg" width="20%" alt="Login Screen"></img>
-<img src="./imgs/login.2.jpg" width="20%" alt="Login Screen"></img>
-
-Home, Upload and Settings Pages:
-
-<img src="./imgs/home.jpg" width="20%" alt="Home Page"></img>
-<img src="./imgs/upload.jpg" width="20%" alt="Upload Page"></img>
-<img src="./imgs/settings.jpg" width="20%" alt="Settings Page"></img>
+<kbd>
+    <img src="./imgs/login.1.jpg" width="19%" alt="Login Screen"></img>
+    <img src="./imgs/login.2.jpg" width="19%" alt="Login Screen"></img>
+    <img src="./imgs/home.jpg" width="19%" alt="Home Page"></img>
+    <img src="./imgs/upload.jpg" width="19%" alt="Upload Page"></img>
+    <img src="./imgs/settings.jpg" width="19%" alt="Settings Page"></img>
+</kbd>
 
 ## Contributions
 
