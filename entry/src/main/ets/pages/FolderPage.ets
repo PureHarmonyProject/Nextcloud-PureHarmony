@@ -9,7 +9,7 @@ const TAG = "Page-FolderPage";
 export let FOLDER_PAGE_NAME: string = "FolderPage";
 
 @Component
-struct FolderPage {
+export struct FolderPage {
     @Consume('FolderList.Lanes') nLanes: number;
     @Consume('FolderList.PathStack') pageInfos: NavPathStack;
     @Prop currentPath: Path;
@@ -120,7 +120,7 @@ struct FolderPage {
             .width('auto')
             .height('auto')
             .flexGrow(1)
-            .cachedCount(5)
+            .cachedCount(10)
         }
         .title(this.navTitleBar)
     }

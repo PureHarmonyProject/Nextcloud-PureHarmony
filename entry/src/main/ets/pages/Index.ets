@@ -1,10 +1,10 @@
 import { Logger, NCommon } from 'nextcloud';
 import { App, promptAction } from '@kit.ArkUI';
 import { Path } from '../utils/Path';
-import { FolderPageBuilder } from './FolderPage';
 import { UploadPage } from './UploadPage';
 import { LoginPage } from './LoginPage';
 import { SettingsPage } from './SettingsPage';
+import { FolderPage } from './FolderPage';
 
 const TAG = "Page-Index";
 
@@ -39,7 +39,7 @@ struct Index {
 
             try {
                 this.getUIContext().getPromptAction().showToast({
-                    message: "Press again to exit",
+                    message: $r('app.string.swipe_back_again_to_exit'),
                     duration: EXIT_TOAST_DURATION,
                 });
             } catch (error) {
@@ -85,7 +85,7 @@ struct Index {
             TabContent() {
                 Flex({ direction: FlexDirection.Column }) {
                     Navigation(this.pathStack) {
-                        FolderPageBuilder("", new Path())
+                        FolderPage({ currentPath: new Path() })
                     }
                     .navBarWidth(0)
                     .mode(NavigationMode.Stack)

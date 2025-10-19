@@ -9,7 +9,6 @@ const TAG = "Nextcloud-Upload";
 
 function CreateSession(extraHeaders?: Map<string, string>): rcp.Session {
     let headers: rcp.RequestHeaders = {};
-    headers['X-NC-WebDAV-AutoMkcol'] = '1';
 
     if (extraHeaders !== undefined) {
         for (let item of extraHeaders) {
@@ -33,6 +32,7 @@ function CreateSession(extraHeaders?: Map<string, string>): rcp.Session {
             }
         }
     }
+
     try {
         return rcp.createSession(sessionConfiguration);
     } catch (error) {
@@ -132,7 +132,11 @@ export async function UploadFile(filename: string, mTime: number, path: string, 
         Logger.Error(TAG, "Failed to upload file: " + e);
     }
 
-    stream.closeSync();
+    try {
+        stream.closeSync();
+    } catch (error) {
+        Logger.Warn(TAG, `failed to close the stream`);
+    }
     session.close();
     return ret;
 }

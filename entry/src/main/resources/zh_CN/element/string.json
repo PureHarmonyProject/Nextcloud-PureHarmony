@@ -63,6 +63,26 @@
     {
       "name": "no",
       "value": "否"
+    },
+    {
+      "name": "categories",
+      "value": "分类"
+    },
+    {
+      "name": "upload_base_directory",
+      "value": "基础目录"
+    },
+    {
+      "name": "save_settings",
+      "value": "保存设置"
+    },
+    {
+      "name": "swipe_back_again_to_exit",
+      "value": "再滑一次退出"
+    },
+    {
+      "name": "upload_all",
+      "value": "全部上传"
     }
   ]
 }

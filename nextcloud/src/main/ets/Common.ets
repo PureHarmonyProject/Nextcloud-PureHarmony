@@ -1,5 +1,5 @@
 import { deviceInfo } from '@kit.BasicServicesKit';
-import { preferences, ValueType } from '@kit.ArkData';
+import { preferences } from '@kit.ArkData';
 import { common } from '@kit.AbilityKit';
 import { Logger } from './Logger';
 import util from '@ohos.util';
@@ -9,17 +9,56 @@ const TAG = "Nextcloud-Common";
 
 const USER_AGENT_PART = "Nextcloud Client for HarmonyOS on ";
 
+export const DEFAULT_CATEGORIES: NCommon.CategoryConfig[] = [
+    {
+        name: 'Camera',
+        location: 'Camera/',
+        patterns: [
+            String.raw`^(IMG)_\d{8}_\d{6}(_\d{3})?(.*)\.(\w+)$`,
+            String.raw`^(S?VID)_\d{8}_\d{6}\.(\w+)$`,
+        ],
+    },
+    {
+        name: 'Screenshot',
+        location: 'Screenshots/',
+        patterns: [
+            String.raw`^((Watch)?[Ss]creenshot)_\d{8}_\d{6}(.*)\.(\w+)$`,
+            String.raw`^(S?VID)_\d{8}_\d{6}_\d+\.(\w+)$`
+        ],
+    },
+    {
+        name: 'Misc',
+        location: 'Others/',
+        patterns: [
+            String.raw`^(IMG)_(\d+)\.(\w+)$`,
+            String.raw`^(image)_(\d+)\.(\w+)$`,
+            String.raw`^(S?VID)_(\d+)\.(\w+)$`,
+            String.raw`^(alipay)_(\d+)\.(\w+)$`,
+        ],
+    },
+    {
+        name: "Unmatched",
+        location: 'Others-unmatched/',
+        patterns: [".*"],
+    },
+];
+
+
 const LOGIN_APP_PASSWORD = "login.appPassword";
 const LOGIN_USERNAME = "login.username";
 const LOGIN_SERVER = "login.server";
+const UPLOAD_BASE_DIRECTORY = "upload.baseDir";
 const UPLOAD_REPLACE_EXISTING = "upload.replaceExisting";
+const UPLOAD_CATEGORIES = "upload.categories";
 
 class NPreference {
     static SETTINGS_KEYS: string[] = [
         LOGIN_APP_PASSWORD,
         LOGIN_USERNAME,
         LOGIN_SERVER,
+        UPLOAD_BASE_DIRECTORY,
         UPLOAD_REPLACE_EXISTING,
+        UPLOAD_CATEGORIES,
     ];
     private pref: preferences.Preferences;
 
@@ -59,6 +98,32 @@ class NPreference {
         this.setPref(UPLOAD_REPLACE_EXISTING, doReplace);
     }
 
+    get baseUploadDirectory(): string {
+        const DEFAULT_VALUE = 'InstantUpload/';
+        let dir = this.getPref(UPLOAD_BASE_DIRECTORY, DEFAULT_VALUE);
+        if (dir === '') {
+            dir = DEFAULT_VALUE;
+        }
+        return dir;
+    }
+
+    set baseUploadDirectory(dir: string) {
+        this.setPref(UPLOAD_BASE_DIRECTORY, dir);
+    }
+
+    get categories(): NCommon.CategoryConfig[] {
+        let stringConfig = this.getPref(UPLOAD_CATEGORIES, "");
+        if (stringConfig === "") {
+            return DEFAULT_CATEGORIES;
+        }
+        return JSON.parse(stringConfig) as NCommon.CategoryConfig[];
+    }
+
+    set categories(categories: NCommon.CategoryConfig[]) {
+        let stringConfig = JSON.stringify(categories);
+        this.setPref(UPLOAD_CATEGORIES, stringConfig);
+    }
+
     public hasLogon() {
         return this.password !== '' && this.username !== '';
     }
@@ -75,7 +140,6 @@ class NPreference {
                 Logger.Info(TAG, "No value stored for " + key);
                 return defaultValue;
             }
-
             return value as T;
         } catch (error) {
             Logger.Info(TAG, "No value stored for " + key);
@@ -84,7 +148,7 @@ class NPreference {
 
     }
 
-    private setPref(key: string, value: ValueType) {
+    private setPref(key: string, value: preferences.ValueType) {
         if (!NPreference.SETTINGS_KEYS.includes(key)) {
             Logger.Error(TAG, "Invalid preference key: " + key);
             return;
@@ -102,6 +166,12 @@ class NPreference {
 
 
 export namespace NCommon {
+    export interface CategoryConfig {
+        name: string;
+        patterns: string[];
+        location: string;
+    }
+
     /**
      * Preferences for Nextcloud
      */
@@ -119,7 +189,6 @@ export namespace NCommon {
         Logger.Info(TAG, "Common initialised with User-Agent: " + UserAgent());
         Preference = new NPreference(context);
     }
-
 
     export function MakePreviewUrl(fileId: string, x: number = 64, y: number = 64): string {
         return `https://${NCommon.Preference.username}:${NCommon.Preference.password}@${NCommon.Preference.hostname}`

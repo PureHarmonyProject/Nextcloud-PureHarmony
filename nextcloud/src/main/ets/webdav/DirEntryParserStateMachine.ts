@@ -1,4 +1,4 @@
-import { DavPropsType, DavResponse, DavResponseRoot, DAV_PROPERTY_TYPES } from "./DavTypes";
+import { DAV_PROPERTY_TYPES, DavPropsType, DavResponse, DavResponseRoot } from './DavTypes';
 import { Logger } from '../Logger';
 
 const TAG = "Nextcloud-DirEntryParser";

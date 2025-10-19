@@ -1,6 +1,20 @@
 import { Logger, NCommon } from 'nextcloud';
+import { LengthMetrics } from '@kit.ArkUI';
 
 const TAG = 'pages/Settings';
+
+@Observed
+class EditableCategory implements NCommon.CategoryConfig {
+    name: string;
+    patterns: string[];
+    location: string;
+
+    constructor(other: NCommon.CategoryConfig) {
+        this.name = other.name;
+        this.patterns = other.patterns;
+        this.location = other.location;
+    }
+}
 
 @Entry
 @Component
@@ -9,18 +23,20 @@ export struct SettingsPage {
     @State private username: string = "<username>";
     @State private hostname: string = "<hostname>";
     @State private uploadReplaceExisting: boolean = false;
+    @State private uploadBaseDirectory: string = '/';
+    @State private uploadCategories: EditableCategory[] = [];
 
     aboutToAppear(): void {
         this.doLoadSettings();
     }
 
     build() {
-        Column() {
+        Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, space: { main: LengthMetrics.vp(8) } }) {
             Text($r('app.string.tab_settings'))
                 .fontSize($r('sys.float.titlebar_main_title_text_font_size'))
                 .fontWeight(FontWeight.Bold)
                 .fontSize(24)
-                .padding(16)
+                .padding({ left: 16, top: 16, bottom: 24 })
                 .width('100%')
 
             Scroll(this.scroller) {
@@ -60,8 +76,8 @@ export struct SettingsPage {
                             .fontSize($r('sys.float.subheader_title_font_size'))
 
                         Row() {
-                            Text('Base Directory')
-                            Text('/InstantUpload')
+                            Text($r('app.string.upload_base_directory'))
+                            Text(this.uploadBaseDirectory)
                                 .copyOption(CopyOptions.LocalDevice)
                         }
                         .justifyContent(FlexAlign.SpaceBetween)
@@ -85,6 +101,43 @@ export struct SettingsPage {
                         .width('100%')
                         .height(24)
                     }
+
+                    Divider()
+                        .margin({ top: 16, bottom: 16 })
+
+                    Column({ space: 4 }) {
+                        Text($r('app.string.categories'))
+                            .width('100%')
+                            .fontWeight(FontWeight.Bold)
+                            .fontSize($r('sys.float.subheader_title_font_size'))
+
+                        ForEach(this.uploadCategories, (category: EditableCategory, index: number) => {
+                            Column({ space: 4 }) {
+                                Row() {
+                                    Text(category.name)
+                                        .fontWeight(FontWeight.Bold)
+
+                                    Text(this.uploadBaseDirectory + category.location)
+                                        .fontSize(12)
+                                        .fontColor(Color.Gray)
+                                }
+                                .justifyContent(FlexAlign.SpaceBetween)
+                                .width('100%')
+
+                                ForEach(category.patterns, (pattern: string, patternIndex: number) => {
+                                    TextInput({ text: pattern })
+                                        .fontSize(12)
+                                        .fontFamily('monospace')
+                                        .width('100%')
+                                        .onChange((content) => {
+                                            category.patterns[patternIndex] = content;
+                                        })
+                                })
+                            }
+                            .width('100%')
+                            .padding(8)
+                        })
+                    }
                 }
                 .margin({ left: 24, right: 24 })
             }
@@ -92,7 +145,7 @@ export struct SettingsPage {
             .edgeEffect(EdgeEffect.Spring)
             .flexGrow(1)
 
-            Button('Save Settings', { stateEffect: true })
+            Button($r('app.string.save_settings'), { stateEffect: true })
                 .onClick(() => {
                     this.doSaveSettings();
                     this.getUIContext().getPromptAction().showToast({
@@ -109,6 +162,11 @@ export struct SettingsPage {
             this.username = NCommon.Preference.username;
             this.hostname = NCommon.Preference.hostname;
             this.uploadReplaceExisting = NCommon.Preference.replaceExistingFiles;
+            this.uploadBaseDirectory = NCommon.Preference.baseUploadDirectory;
+            this.uploadCategories = [];
+            for (let c of NCommon.Preference.categories) {
+                this.uploadCategories.push(new EditableCategory(c));
+            }
         } else {
             Logger.Error(TAG, `failed to load settings, preference is undefined`);
         }
@@ -119,6 +177,8 @@ export struct SettingsPage {
             NCommon.Preference.username = this.username;
             NCommon.Preference.hostname = this.hostname;
             NCommon.Preference.replaceExistingFiles = this.uploadReplaceExisting;
+            NCommon.Preference.baseUploadDirectory = this.uploadBaseDirectory;
+            NCommon.Preference.categories = this.uploadCategories;
         } else {
             Logger.Error(TAG, `failed to save settings, preference is undefined`);
         }

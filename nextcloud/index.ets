@@ -1,4 +1,4 @@
-export { NCommon } from './src/main/ets/Common';
+export { NCommon, DEFAULT_CATEGORIES } from './src/main/ets/Common';
 
 export { ListFiles } from './src/main/ets/webdav/Files';
 

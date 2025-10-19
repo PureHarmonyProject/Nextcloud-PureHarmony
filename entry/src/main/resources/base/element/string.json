@@ -63,6 +63,26 @@
     {
       "name": "no",
       "value": "No"
+    },
+    {
+      "name": "categories",
+      "value": "Categories"
+    },
+    {
+      "name": "upload_base_directory",
+      "value": "Base Directory"
+    },
+    {
+      "name": "save_settings",
+      "value": "Save Settings"
+    },
+    {
+      "name": "swipe_back_again_to_exit",
+      "value": "Swipe back again to exit"
+    },
+    {
+      "name": "upload_all",
+      "value": "Upload All"
     }
   ]
 }
