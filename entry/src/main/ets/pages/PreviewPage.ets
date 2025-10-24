@@ -1,6 +1,5 @@
-import { DirectoryEntry, NCommon } from "nextcloud";
-import { Logger } from "nextcloud";
-import { Path } from "../utils/Path";
+import { DirectoryEntry, Logger, NCommon } from 'nextcloud';
+import { Path } from '../utils/Path';
 
 const TAG: string = "Page-PreviewPage";
 
@@ -11,17 +10,21 @@ struct PreviewPage {
     @Prop entry: DirectoryEntry;
     @Prop fullPath: Path = new Path();
     @State private previewLoaded: boolean = false;
-    @State private imageScale: number = 1;
-    private previousScale: number = 1;
-    @State private imageOffsetX: number = 0;
-    @State private imageOffsetY: number = 0;
-    private previousOffsetX: number = 0;
-    private previousOffsetY: number = 0;
     @State private previewLink: string = NCommon.MakePreviewUrl(this.entry.fileId, 100, 100);
     @State @Watch('onPreviewLevelChanged') private previewLevel: number = 0;
     @State private failedToLoad: boolean = false;
     @State private failedReason: string = "";
     @State private title: string = "";
+    // Zoom and Pan states
+    @State private imageScale: number = 1;
+    @State private offsetX: number = 0;
+    @State private offsetY: number = 0;
+    @State private eventOffsetX: number = 0;
+    @State private eventOffsetY: number = 0;
+    @State private previousScale: number = 1;
+    //
+    private startPinchX: number = 0;
+    private startPinchY: number = 0;
 
     onPreviewLevelChanged() {
         Logger.Info(TAG, "Preview level: " + this.previewLevel);
@@ -59,32 +62,42 @@ struct PreviewPage {
                     .draggable(this.previewLoaded)
                     .objectFit(ImageFit.Contain)
                     .scale({ x: this.imageScale, y: this.imageScale })
-                    .offset({ x: this.imageOffsetX, y: this.imageOffsetY })
+                    .offset({
+                        x: this.offsetX * this.imageScale + this.eventOffsetX,
+                        y: this.offsetY * this.imageScale + this.eventOffsetY,
+                    })
                     .dynamicRangeMode(DynamicRangeMode.HIGH)
                     .gesture(
                         GestureGroup(GestureMode.Parallel,
                             PanGesture()
                                 .onActionStart((_event: GestureEvent) => {
-                                    this.previousOffsetX = this.imageOffsetX;
-                                    this.previousOffsetY = this.imageOffsetY;
                                 })
                                 .onActionUpdate((event: GestureEvent) => {
-                                    this.imageOffsetX = this.previousOffsetX + event.offsetX * this.imageScale;
-                                    this.imageOffsetY = this.previousOffsetY + event.offsetY * this.imageScale;
+                                    this.eventOffsetX = event.offsetX * this.imageScale;
+                                    this.eventOffsetY = event.offsetY * this.imageScale;
                                 })
                                 .onActionEnd((_event: GestureEvent) => {
-                                    this.previousOffsetX = this.imageOffsetX;
-                                    this.previousOffsetY = this.imageOffsetY;
+                                    this.offsetX = this.offsetX + this.eventOffsetX / this.imageScale;
+                                    this.offsetY = this.offsetY + this.eventOffsetY / this.imageScale;
+                                    this.eventOffsetX = 0;
+                                    this.eventOffsetY = 0;
                                 }),
                             PinchGesture()
                                 .onActionStart((_event: GestureEvent) => {
                                     this.previousScale = this.imageScale;
+                                    this.startPinchX = _event.pinchCenterX;
+                                    this.startPinchY = _event.pinchCenterY;
                                 })
                                 .onActionUpdate((event: GestureEvent) => {
+                                    this.eventOffsetX = (event.pinchCenterX - this.startPinchX) * this.previousScale;
+                                    this.eventOffsetY = (event.pinchCenterY - this.startPinchY) * this.previousScale;
                                     this.imageScale = this.previousScale * event.scale;
                                 })
-                                .onActionEnd((_event: GestureEvent) => {
-                                    this.previousScale = this.imageScale;
+                                .onActionEnd((event: GestureEvent) => {
+                                    this.offsetX = (this.offsetX * this.imageScale + this.eventOffsetX) / this.imageScale;
+                                    this.offsetY = (this.offsetY * this.imageScale + this.eventOffsetY) / this.imageScale;
+                                    this.eventOffsetX = 0;
+                                    this.eventOffsetY = 0;
                                 }),
                         )
                     )
@@ -102,7 +115,6 @@ struct PreviewPage {
                     .width('100%')
                     .textAlign(TextAlign.Center)
                     .fontColor(Color.Gray)
-
             }
             .width('100%')
             .height('100%')

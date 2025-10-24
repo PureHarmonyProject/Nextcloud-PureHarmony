@@ -16,7 +16,6 @@ class EditableCategory implements NCommon.CategoryConfig {
     }
 }
 
-@Entry
 @Component
 export struct SettingsPage {
     scroller: Scroller = new Scroller();

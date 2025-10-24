@@ -3,6 +3,7 @@ import { Path } from '../utils/Path';
 import { PREVIEW_PAGE_NAME, PreviewPageProps } from './PreviewPage';
 import { LengthMetrics, promptAction } from '@kit.ArkUI';
 import { FormatBytes } from '../utils/Utils';
+import { Constants, FolderViewMode } from '../utils/Common';
 
 const TAG = "Page-FolderPage";
 
@@ -10,7 +11,7 @@ export let FOLDER_PAGE_NAME: string = "FolderPage";
 
 @Component
 export struct FolderPage {
-    @Consume('FolderList.Lanes') nLanes: number;
+    @StorageLink(Constants.VIEW_MODE_KEY) viewMode: FolderViewMode = FolderViewMode.TwoColumns;
     @Consume('FolderList.PathStack') pageInfos: NavPathStack;
     @Prop currentPath: Path;
 
@@ -42,13 +43,33 @@ export struct FolderPage {
     @Builder
     navTitleBar() {
         Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-            Text(this.currentPath.isRootPath() ? $r('app.string.app_name') : this.titlePath())
-                .fontSize($r('sys.float.titlebar_main_title_text_font_size'))
-                .height('100%')
-                .margin(8)
-                .maxLines(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
-                .fontWeight(FontWeight.Bold)
+            Column() {
+                Text(this.currentPath.isRootPath() ? $r('app.string.app_name') : this.currentPath.leaf)
+                    .fontSize($r('sys.float.titlebar_main_title_text_font_size'))
+                    .maxLines(1)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    .fontWeight(FontWeight.Bold)
+
+                if (!this.currentPath.isRootPath()) {
+                    Text() {
+                        ForEach(this.currentPath.getParents(), (part: string, index) => {
+                            Span(part + '/')
+                                .onClick(() => {
+                                    Logger.Info(TAG, `Go to path part: ${part}`);
+                                    this.pageInfos.popToIndex(index);
+                                })
+                        })
+                    }
+                    .fontSize($r('sys.float.titlebar_subheader_size'))
+                    .maxLines(1)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    .ellipsisMode(EllipsisMode.START)
+                }
+            }
+            .alignItems(HorizontalAlign.Start)
+            .justifyContent(FlexAlign.Center)
+            .height('100%')
+            .margin(8)
 
             if (!this.currentPath.isRootPath()) {
                 Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
@@ -100,7 +121,7 @@ export struct FolderPage {
                                         .fontStyle(FontStyle.Italic)
                                 }
                                 .alignItems(HorizontalAlign.Start)
-                                .width(this.nLanes == 1 ? '75%' : '70%')
+                                .width(this.viewMode == 1 ? '75%' : '70%')
                             }
                         }
                         .backgroundColor('#00000000')
@@ -115,7 +136,7 @@ export struct FolderPage {
                 })
             }
             .fadingEdge(true, { fadingEdgeLength: LengthMetrics.vp(80) })
-            .lanes(this.nLanes)
+            .lanes(this.viewMode)
             .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
             .width('auto')
             .height('auto')
@@ -123,11 +144,6 @@ export struct FolderPage {
             .cachedCount(10)
         }
         .title(this.navTitleBar)
-    }
-
-    private titlePath() {
-        Logger.Info(TAG, `title: ${JSON.stringify(this.currentPath)}`);
-        return this.currentPath.parentName + "/" + (this.currentPath.leaf ?? "");
     }
 }
 

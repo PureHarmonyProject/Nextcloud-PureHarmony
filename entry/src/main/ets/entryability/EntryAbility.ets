@@ -1,6 +1,7 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { window } from '@kit.ArkUI';
 import { Logger, NCommon } from 'nextcloud';
+import { Constants, FolderViewMode } from '../utils/Common';
 import { GlobalStorage } from '../utils/GlobalStorage';
 
 const TAG = 'EntryAbility';
@@ -24,6 +25,7 @@ export default class EntryAbility extends UIAbility {
 
         try {
             await windowStage.loadContent('pages/Index');
+            PersistentStorage.persistProp(Constants.VIEW_MODE_KEY, FolderViewMode.TwoColumns);
             Logger.Info(TAG, 'Succeeded in loading the content.');
         } catch (e) {
             Logger.Error(TAG, 'Failed to load the content. Cause: ' + JSON.stringify(e) ?? '');

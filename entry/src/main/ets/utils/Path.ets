@@ -60,6 +60,14 @@ export class Path {
         return resolvedParts;
     }
 
+    public getParents() {
+        let parts = [''];
+        for (let i = 0; i < this.parts.length - 1; i++) {
+            parts.push(this.parts[i]);
+        }
+        return parts;
+    }
+
     path(isDir: boolean = true) {
         let result = "/" + this.parts.join("/");
         // make sure the path ends with a slash

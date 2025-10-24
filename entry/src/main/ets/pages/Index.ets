@@ -5,6 +5,7 @@ import { UploadPage } from './UploadPage';
 import { LoginPage } from './LoginPage';
 import { SettingsPage } from './SettingsPage';
 import { FolderPage } from './FolderPage';
+import { Constants, FolderViewMode } from '../utils/Common';
 
 const TAG = "Page-Index";
 
@@ -14,7 +15,7 @@ const EXIT_TOAST_DURATION: number = 2000;
 @Component
 struct Index {
     @State currentIndex: number = 0;
-    @Provide('FolderList.Lanes') listLanes: number = 2;
+    @StorageLink(Constants.VIEW_MODE_KEY) viewMode: FolderViewMode = FolderViewMode.TwoColumns;
     @Provide('FolderList.PathStack') pathStack: NavPathStack = new NavPathStack();
     @State private loginPageDialogId: number = 0;
     private backedOnce: boolean = false;
@@ -91,9 +92,9 @@ struct Index {
                     .mode(NavigationMode.Stack)
 
                     Row({ space: 10 }) {
-                        Button("Lanes: " + this.listLanes)
+                        Button(FolderViewMode[this.viewMode])
                             .onClick(() => {
-                                this.listLanes = (this.listLanes % 3) + 1;
+                                this.viewMode = (this.viewMode % 3) + 1;
                             })
                             .width(100)
                     }

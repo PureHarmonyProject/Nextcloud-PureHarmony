@@ -1,6 +1,6 @@
 # Nextcloud Client for HarmonyOS
 
-This is a EXTREMELY early version of Nextcloud Client on HarmonyOS.
+This is an early version of Nextcloud Client on HarmonyOS.
 
 ## Update Timeline
 
